@@ -1,10 +1,11 @@
 {
   "name": "actividad_2_6_cheerio",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Implementar una solución backend utilizando **Node.js** y **Express** que obtenga el código HTML de una página, lo procese mediante **Cheerio** para extraer información estructurada (título, precio, y disponibilidad) y la devuelva a través de una API REST aplicando validaciones y manejo de errores.",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
   },
   "keywords": [],
   "author": "",
@@ -12,7 +13,16 @@
   "type": "commonjs",
   "dependencies": {
     "axios": "^1.16.0",
+    "cheerio": "^1.2.0",
     "cherio": "^1.0.0-rc.2",
     "express": "^5.2.1"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/msthtdpipe/Evaluacion.git"
+  },
+  "bugs": {
+    "url": "https://github.com/msthtdpipe/Evaluacion/issues"
+  },
+  "homepage": "https://github.com/msthtdpipe/Evaluacion#readme"
 }
