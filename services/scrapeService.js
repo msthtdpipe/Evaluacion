@@ -1,38 +1,39 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
 
-const extraerDatosLibros = async (url) => {
+const extractData = async (url) => {
     try {
-        const respuesta = await axios.get(url, { timeout: 5000 });
-        const html = respuesta.data;
+        const { data: html } = await axios.get(url);
+        
+        if (!html) {
+            throw new Error("El cuerpo del HTML está vacío.");
+        }
 
         const $ = cheerio.load(html);
-        const resultados = [];
+        const results = [];
 
+        // Extraer información (Asumiendo books.toscrape.com como objetivo principal)
+        $('article.product_pod').each((index, element) => {
+            // Mínimo 3 datos solicitados:
+            const title = $(element).find('h3 a').attr('title'); // Dato 1
+            const price = $(element).find('.price_color').text(); // Dato 2
+            const availability = $(element).find('.instock.availability').text().trim(); // Dato 3
 
-        $('article.product_pod').each((index, elemento) => {
-            // Extraer 3 datos requeridos
-            const titulo = $(elemento).find('h3 a').attr('title');
-            const precio = $(elemento).find('.price_color').text();
-            const disponibilidad = $(elemento).find('.instock.availability').text().trim();
-
-
-            if (titulo && precio && disponibilidad) {
-                resultados.push({
+            if (title && price) {
+                results.push({
                     id: index + 1,
-                    titulo: titulo,
-                    precio: precio,
-                    disponibilidad: disponibilidad
+                    titulo: title,
+                    precio: price,
+                    disponibilidad: availability
                 });
             }
         });
 
-        return resultados;
+        return results;
 
     } catch (error) {
-        console.error("Error en la extracción con Cheerio:", error.message);
-        throw new Error('Fallo al obtener o parsear el HTML'); 
+        throw new Error(`Fallo al obtener la página: ${error.message}`);
     }
 };
 
-module.exports = { extraerDatosLibros };
+module.exports = { extractData };

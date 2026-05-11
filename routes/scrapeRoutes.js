@@ -3,6 +3,6 @@ const router = express.Router();
 const scrapeController = require('../controllers/scrapeController');
 
 
-router.post('/scrape', scrapeController.iniciarScraping);
+router.get('/scrape', scrapeController.getScrapedData);
 
 module.exports = router;

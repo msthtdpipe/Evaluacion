@@ -1,41 +1,44 @@
 const scrapeService = require('../services/scrapeService');
 
-const iniciarScraping = async (req, res) => {
+const getScrapedData = async (req, res) => {
+    // Se acepta una URL por query string, si no, usa una de prueba por defecto
+    const targetUrl = req.query.url || 'https://books.toscrape.com/';
+
+    // Validación básica: Validar formato de URL
     try {
-        const { url } = req.body;
+        new URL(targetUrl);
+    } catch (err) {
+        return res.status(400).json({ 
+            success: false, 
+            message: "La URL proporcionada no es válida. (Ejemplo: https://sitio.com)" 
+        });
+    }
 
-        // 1. Validación: HTML/URL no vacía 
-        if (!url) {
-            return res.status(400).json({ error: 'Falta la URL. Por favor, envía un campo "url" en el body.' });
+    // Ejecutar servicio y manejo de errores
+    try {
+        const data = await scrapeService.extractData(targetUrl);
+        
+        //Validar si el selector encontró resultados
+        if (!data || data.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "No se encontraron datos. Verifica que la estructura HTML de la URL objetivo coincida con los selectores."
+            });
         }
 
-        // 2. Validación: Formato de URL válido 
-        try {
-            new URL(url);
-        } catch (e) {
-            return res.status(400).json({ error: 'La URL proporcionada no es válida. Incluye http:// o https://' });
-        }
-
-
-        const datosExtraidos = await scrapeService.extraerDatosLibros(url);
-
-        // 3. Validación: Selectores sin resultados 
-        if (!datosExtraidos || datosExtraidos.length === 0) {
-            return res.status(404).json({ error: 'No se encontraron datos en la página con los selectores actuales.' });
-        }
-
-        // Respuesta exitosa
         return res.status(200).json({
-            mensaje: 'Scraping realizado con éxito',
-            total_extraidos: datosExtraidos.length,
-            datos: datosExtraidos
+            success: true,
+            total_extraidos: data.length,
+            data: data
         });
 
     } catch (error) {
-        console.error("Error en el controlador:", error.message);
-        // Manejo de errores de red o servidor 
-        return res.status(500).json({ error: 'Error interno del servidor al procesar la página HTML.' });
+        return res.status(500).json({
+            success: false,
+            message: "Error en el servidor al intentar extraer la información.",
+            error_detail: error.message
+        });
     }
 };
 
-module.exports = { iniciarScraping };
+module.exports = { getScrapedData };
