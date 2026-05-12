@@ -1,39 +1,34 @@
-const axios = require('axios');
 const cheerio = require('cheerio');
+const fs = require('fs').promises;
+const path = require('path');
 
-const extractData = async (url) => {
+const procesarArchivoLocal = async () => {
     try {
-        const { data: html } = await axios.get(url);
+        // Ruta dinámica para encontrar el HTML en la carpeta /public
+        const ruta = path.join(__dirname, '../../public/index.html');
         
-        if (!html) {
-            throw new Error("El cuerpo del HTML está vacío.");
-        }
+        // Verificamos si el archivo existe antes de leerlo (Validación de robustez)
+        await fs.access(ruta);
+        const contenido = await fs.readFile(ruta, 'utf-8');
 
-        const $ = cheerio.load(html);
-        const results = [];
+        const $ = cheerio.load(contenido);
+        const listaProductos = [];
 
-        // Extraer información (Asumiendo books.toscrape.com como objetivo principal)
-        $('article.product_pod').each((index, element) => {
-            // Mínimo 3 datos solicitados:
-            const title = $(element).find('h3 a').attr('title'); // Dato 1
-            const price = $(element).find('.price_color').text(); // Dato 2
-            const availability = $(element).find('.instock.availability').text().trim(); // Dato 3
-
-            if (title && price) {
-                results.push({
-                    id: index + 1,
-                    titulo: title,
-                    precio: price,
-                    disponibilidad: availability
-                });
-            }
+        // Selectores basados en la estructura de EduTrack (clases claras)
+        $('.card-producto').each((i, el) => {
+            listaProductos.push({
+                id: i + 1,
+                nombre: $(el).find('.titulo').text().trim(),
+                precio: $(el).find('.precio').text().trim(),
+                stock: $(el).find('.disponibilidad').text().trim()
+            });
         });
 
-        return results;
-
+        return listaProductos;
     } catch (error) {
-        throw new Error(`Fallo al obtener la página: ${error.message}`);
+        // Si el archivo no existe o hay error de lectura
+        throw { status: 500, message: "Error al acceder al archivo de la maqueta" };
     }
 };
 
-module.exports = { extractData };
+module.exports = { procesarArchivoLocal };
